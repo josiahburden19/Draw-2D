@@ -1,0 +1,90 @@
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	self.time = 0
+	self.rising = false
+	self.colour_offset = 0.1
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	self.time = self.time + dt
+	if self.time > 0.05 then
+		fade()
+		self.time = 0
+	end
+end
+
+function fixed_update(self, dt)
+	-- This function is only called if 'Use Fixed Timestep' is enabled in the Physics section of game.project
+	-- Add update code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Learn more: https://defold.com/manuals/message-passing/
+	-- Remove this function if not needed
+end
+
+function fade()
+	for i=1, 48, 1 do
+		for j=1, 32 do
+			local current_tile = tilemap.get_tile('#block_background', 'layer1', i, j)
+			if current_tile < 10 then
+				tilemap.set_tile('#block_background', 'layer1', i, j, current_tile + 1)
+			end
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == nil then
+		local current_coordinates = vmath.vector3(action.x, action.y, 0)
+		local old_coordinates = current_coordinates - (vmath.vector3(action.dx, action.dy, 0))
+		local direction = vmath.normalize(current_coordinates - old_coordinates)
+		local length = vmath.length(current_coordinates - old_coordinates)
+		for i=0, math.ceil(length/20), 1 do
+			local x = math.ceil(((20 * direction.x * i) + old_coordinates.x)/20)
+			local y = math.ceil(((20 * direction.y * i) + old_coordinates.y)/20)
+			if (x >= 1) and (x <= 48) and (y >= 1) and (y <= 32) then
+				tilemap.set_tile('#block_background', 'layer1', x , y, 1)
+			end
+		end
+	end
+	if action_id == hash('wheel_up') or action_id == hash('wheel_down') then
+
+		local current_tint = go.get('#block_background', 'tint')
+		if current_tint.x < 1 and not self.rising then
+			go.set('#block_background', 'tint.x', current_tint.x + self.colour_offset)
+		elseif current_tint.y < 1 and not self.rising then
+			go.set('#block_background', 'tint.y', current_tint.y + self.colour_offset)
+		elseif current_tint.z < 1 and not self.rising then
+			go.set('#block_background', 'tint.z', current_tint.z + self.colour_offset)
+		elseif not self.rising then
+			self.rising = true
+			go.set('#block_background', 'tint',vmath.vector4(1, 1, 1, 1))
+		end
+		if current_tint.x > 0.5 and self.rising then
+			go.set('#block_background', 'tint.x', current_tint.x - self.colour_offset)
+		elseif current_tint.y > 0.5 and self.rising then
+			go.set('#block_background', 'tint.y', current_tint.y - self.colour_offset)
+		elseif current_tint.z > 0.5 and self.rising then
+			go.set('#block_background', 'tint.z', current_tint.z - self.colour_offset)
+		elseif self.rising then
+			self.rising = false
+			go.set('#block_background', 'tint',vmath.vector4(0.5, 0.5, 0.5, 1))
+		end
+	end
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end

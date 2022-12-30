@@ -1,0 +1,90 @@
+function load_mode(self)
+	self.run = 'load'
+	self.files = {}
+	self.cloned_boxes = {}
+	self.cloned_texts = {}
+	self.scale_text = gui.get_scale(gui.get_node('filename'))
+	for dir in io.popen([[dir "levels" /b]]):lines() do table.insert(self.files, dir) end
+	for i in pairs(self.files) do
+		local pos = gui.get_position(gui.get_node('frame'))
+		local box = gui.clone(gui.get_node('frame'))
+		local text = gui.clone(gui.get_node('filename'))
+		gui.set_text(text, self.files[i])
+		gui.set_position(box, pos - vmath.vector3(0, i * 40 - 40, 0))
+		gui.set_position(text, pos - vmath.vector3(0, i * 40 - 42, 0))
+		gui.set_enabled(box, true)
+		gui.set_enabled(text, true)
+		table.insert(self.cloned_boxes, box)
+		table.insert(self.cloned_texts, text)
+	end
+	msg.post('.', 'acquire_input_focus')
+end
+
+function save_mode(self)
+	
+end
+
+function close_load(self)
+	for i,v in pairs(self.cloned_boxes) do
+		gui.delete_node(v)
+	end
+	for i,v in pairs(self.cloned_texts) do
+		gui.delete_node(v)
+		gui.set_scale(v, self.scale_text)
+	end
+	toggle_colour('exit1', 'exit1_text', false)
+	msg.post('.', 'release_input_focus')
+end
+
+function toggle_colour(box, text, set)
+	if set then
+		gui.set_color(gui.get_node(text), vmath.vector4(0, 0, 0, 1))
+		gui.set_alpha(gui.get_node(box), 1)
+	else
+		gui.set_color(gui.get_node(text), vmath.vector4(1, 1, 1, 1))
+		gui.set_alpha(gui.get_node(box), 0)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash('text') then
+		if message[1] == 'Load' then
+			load_mode(self)
+			gui.set_text(gui.get_node('main_text'), 'Load')
+		elseif message[1] == 'Save' then
+			save_mode(self)
+			gui.set_text(gui.get_node('main_text'), 'Save')
+		end
+	end
+	if message_id == hash('disable') then
+		if self.run == 'load' then
+			close_load(self)
+		elseif self.run == 'save' then
+			close_save(self)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	for i,v in pairs(self.cloned_texts) do
+		if gui.pick_node(v, action.x, action.y) then
+			gui.animate(v, 'scale', self.scale_text * 1.2, go.EASING_INOUTSINE, 0.1)
+			if action.pressed and action_id == hash('touch') then
+				msg.post('/gui', 'load_selected', {self.files[i]})
+			end
+		else
+			gui.animate(v, 'scale', self.scale_text, go.EASING_INOUTSINE, 0.1)
+		end
+	end
+	if gui.pick_node(gui.get_node('exit1'), action.x, action.y) then
+		toggle_colour('exit1', 'exit1_text', true)
+		if action.pressed and action_id == hash('touch') then
+			msg.post('/gui', 'load_selected', {nil})
+		end
+	else
+		toggle_colour('exit1', 'exit1_text', false)
+	end
+	if action_id == hash('esc') then
+		msg.post('/gui', 'load_selected', {nil})
+	end
+end

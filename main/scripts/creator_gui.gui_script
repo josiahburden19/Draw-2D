@@ -1,0 +1,116 @@
+function init(self)
+	msg.post('.', 'acquire_input_focus')
+	self.colours = {'white', 'light_grey', 'grey', 'black', 'cyan', 'teal', 'blue', 'navy', 'red', 'maroon', 'purple', 'magenta', 'yellow', 'olive', 'green', 'lime'}
+	self.update_status = false
+	self.currently_animating = false
+	self.saving_or_loading = false
+end
+
+function toggle_colour(box, text, set)
+	if set then
+		gui.set_color(gui.get_node(text), vmath.vector4(0, 0, 0, 1))
+		gui.set_alpha(gui.get_node(box), 1)
+	else
+		gui.set_color(gui.get_node(text), vmath.vector4(1, 1, 1, 1))
+		gui.set_alpha(gui.get_node(box), 0)
+	end
+end
+
+function adaptive_box_text(box, text, message)
+	gui.set_text(gui.get_node(text), message)
+	gui.set_size(gui.get_node(box), vmath.vector3(#message*50, gui.get_size(box).y, 0))
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash('load_selected') then
+		if not message[1] == nil then
+			local level = sys.load('levels/' .. message[1])
+			for i=1, 30 do
+				for j=1, 46 do
+					tilemap.set_tile('/tiles#block_main', 'main', j + 1, i + 1, level.pixels[i][j])
+				end
+			end
+			adaptive_box_text('level', 'level_text', message[1])
+		end
+		msg.post('/load_save', 'disable')
+		msg.post('/tiles', 'saving_loading_toggle')
+		self.saving_or_loading = false
+	end
+end
+
+function save(self)
+	-- local pixels = {}
+	-- for i=2, 31 do
+	-- 	pixels[i-1] = {}
+	-- 	for j=2, 47 do
+	-- 		pixels[i-1][j-1] = tilemap.get_tile('/tiles#block_main', 'main', j, i)
+	-- 	end
+	-- end
+	-- sys.save('levels/level', {pixels = pixels})
+	msg.post('/load_save', 'enable')
+	msg.post('/load_save', 'text', {'Save'})
+	msg.post('/tiles', 'saving_loading_toggle')
+	self.saving_or_loading = true
+	toggle_colour('save', 'save_text', false)
+end
+
+function load(self)
+	msg.post('/load_save', 'enable')
+	msg.post('/load_save', 'text', {'Load'})
+	msg.post('/tiles', 'saving_loading_toggle')
+	self.saving_or_loading = true
+	toggle_colour('load', 'load_text', false)
+end
+
+function on_input(self, action_id, action)
+	if not self.saving_or_loading then
+		-- Changes the colour of the nodes if mouse is hovered on them
+		if gui.pick_node(gui.get_node('back'), action.x, action.y) then
+			toggle_colour('back', 'back_text', true)
+			if action.pressed and action_id == hash('touch') then
+				msg.post('main:/controller', 'load_title')
+			end
+		else
+			toggle_colour('back', 'back_text', false)
+		end
+		if gui.pick_node(gui.get_node('load'), action.x, action.y) then
+			toggle_colour('load', 'load_text', true)
+			if action.pressed and action_id == hash('touch') then
+				load(self)
+			end
+		else
+			toggle_colour('load', 'load_text', false)
+		end
+		if gui.pick_node(gui.get_node('save'), action.x, action.y) then
+			toggle_colour('save', 'save_text', true)
+			if action.pressed and action_id == hash('touch') then
+				save(self)
+			end
+		else
+			toggle_colour('save', 'save_text', false)
+		end
+		if gui.pick_node(gui.get_node('container'), action.x, action.y) or 
+		gui.pick_node(gui.get_node('back'), action.x, action.y) or
+		gui.pick_node(gui.get_node('save'), action.x, action.y) or
+		gui.pick_node(gui.get_node('load'), action.x, action.y) then
+			msg.post('/tiles', 'disable_drawing')
+			self.update_status = true
+		elseif self.update_status then
+			msg.post('/tiles', 'enable_drawing')
+			self.update_status = false
+		end
+		for i,v in pairs(self.colours) do
+			if gui.pick_node(gui.get_node(v), action.x, action.y) then
+				if action_id == hash('touch') and action.pressed then
+					self.currently_animating = true
+					gui.animate(gui.get_node(v), 'scale', vmath.vector3(1.5, 1.5, 1.5), go.EASING_INSINE, 0.1, 0 , function() self.currently_animating = false end)
+					msg.post('/tiles', 'selected_colour', {i,v})
+				elseif not self.currently_animating then
+					gui.animate(gui.get_node(v), 'scale', vmath.vector3(1.2, 1.2, 1.2), go.EASING_INSINE, 0.1)
+				end
+			elseif not self.currently_animating then
+				gui.animate(gui.get_node(v), 'scale', vmath.vector3(1, 1, 1), go.EASING_INSINE, 0.1)
+			end
+		end
+	end
+end
