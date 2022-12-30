@@ -533,7 +533,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Type a name"
+  text: "Type File Name"
   font: "font"
   id: "type"
   xanchor: XANCHOR_NONE
@@ -693,7 +693,7 @@ nodes {
 nodes {
   position {
     x: 0.0
-    y: -87.0
+    y: -38.0
     z: 0.0
     w: 1.0
   }
@@ -704,9 +704,9 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.56
-    y: 0.56
-    z: 0.56
+    x: 1.187
+    y: 1.187
+    z: 1.187
     w: 1.0
   }
   size {

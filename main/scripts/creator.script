@@ -2,6 +2,7 @@ function init(self)
 	msg.post(".", "acquire_input_focus")
 	msg.post('/load_save', 'disable')
 	self.gui = true
+	self.saving_loading_toggle = true
 end
 
 function final(self)
@@ -24,18 +25,20 @@ function fixed_update(self, dt)
 end
 
 function on_message(self, message_id, message, sender)
-	-- Add message-handling code here
-	-- Learn more: https://defold.com/manuals/message-passing/
-	-- Remove this function if not needed
+	if message_id == hash('saving_loading_toggle') then
+		self.saving_loading_toggle = not self.saving_loading_toggle
+	end
 end
 
 function toggle_gui(self)
-	if self.gui then
-		msg.post('/gui', 'disable')
-	else
-		msg.post('/gui', 'enable')
+	if self.saving_loading_toggle then
+		if self.gui then
+			msg.post('/gui', 'disable')
+		else
+			msg.post('/gui', 'enable')
+		end
+		self.gui = not self.gui
 	end
-	self.gui = not self.gui
 end
 
 function on_input(self, action_id, action)

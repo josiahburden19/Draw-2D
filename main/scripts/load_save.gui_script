@@ -17,39 +17,26 @@ function load_mode(self)
 		table.insert(self.cloned_boxes, box)
 		table.insert(self.cloned_texts, text)
 	end
+	gui.set_enabled(gui.get_node('save'), false)
 	msg.post('.', 'acquire_input_focus')
+	
 end
 
 function save_mode(self)
 	self.mode = 'save'
-	self.files = {}
-	self.cloned_boxes = {}
-	self.cloned_texts = {}
-	self.scale_text = gui.get_scale(gui.get_node('filename'))
 	gui.set_enabled(gui.get_node('save'), true)
-	for dir in io.popen([[dir "levels" /b]]):lines() do table.insert(self.files, dir) end
-	for i in pairs(self.files) do
-		local pos = gui.get_position(gui.get_node('frame'))
-		local box = gui.clone(gui.get_node('frame'))
-		local text = gui.clone(gui.get_node('filename'))
-		gui.set_text(text, self.files[i])
-		gui.set_position(box, pos - vmath.vector3(0, i * 40 - 40, 0))
-		gui.set_position(text, pos - vmath.vector3(0, i * 40 - 42, 0))
-		gui.set_enabled(box, true)
-		gui.set_enabled(text, true)
-		table.insert(self.cloned_boxes, box)
-		table.insert(self.cloned_texts, text)
-	end
 	msg.post('.', 'acquire_input_focus')
 end
 
 function close(self)
-	for i,v in pairs(self.cloned_boxes) do
-		gui.delete_node(v)
-	end
-	for i,v in pairs(self.cloned_texts) do
-		gui.delete_node(v)
-		gui.set_scale(v, self.scale_text)
+	if self.mode == 'load' then
+		for i,v in pairs(self.cloned_boxes) do
+			gui.delete_node(v)
+		end
+		for i,v in pairs(self.cloned_texts) do
+			gui.delete_node(v)
+			gui.set_scale(v, self.scale_text)
+		end
 	end
 	toggle_colour('exit1', 'exit1_text', false)
 	gui.set_enabled(gui.get_node('save'), false)
@@ -83,17 +70,19 @@ function on_message(self, message_id, message, sender)
 end
 
 function on_input(self, action_id, action)
-	for i,v in pairs(self.cloned_texts) do
-		if gui.pick_node(v, action.x, action.y) then
-			gui.animate(v, 'scale', self.scale_text * 1.2, go.EASING_INOUTSINE, 0.1)
-			if action.pressed and action_id == hash('touch') then
-				msg.post('/gui', 'load_selected', {self.files[i]})
+	if self.mode == 'load' then
+		for i,v in pairs(self.cloned_texts) do
+			if gui.pick_node(v, action.x, action.y) then
+				gui.animate(v, 'scale', self.scale_text * 1.2, go.EASING_INOUTSINE, 0.1)
+				if action.pressed and action_id == hash('touch') then
+					msg.post('/gui', 'load_selected', {self.files[i]})
+					gui.set_text(gui.get_node('type_text'), self.files[i])
+				end
+			else
+				gui.animate(v, 'scale', self.scale_text, go.EASING_INOUTSINE, 0.1)
 			end
-		else
-			gui.animate(v, 'scale', self.scale_text, go.EASING_INOUTSINE, 0.1)
 		end
 	end
-
 	
 	if gui.pick_node(gui.get_node('exit1'), action.x, action.y) then
 		toggle_colour('exit1', 'exit1_text', true)
@@ -104,27 +93,29 @@ function on_input(self, action_id, action)
 		toggle_colour('exit1', 'exit1_text', false)
 	end
 
-
-	if gui.pick_node(gui.get_node('save'), action.x, action.y) then
-		toggle_colour('save', 'save_text', true)
-		if action.pressed and action_id == hash('touch') then
-			if gui.is_enabled(gui.get_node('type_container'), false) and #gui.get_text(gui.get_node('type_text')) > 0 then
-				local pixels = {}
-				for i=2, 31 do
-					pixels[i-1] = {}
-					for j=2, 47 do
-						pixels[i-1][j-1] = tilemap.get_tile('/tiles#block_main', 'main', j, i)
+	if self.mode == 'save' then
+		if gui.pick_node(gui.get_node('save'), action.x, action.y) then
+			toggle_colour('save', 'save_text', true)
+			if action.pressed and action_id == hash('touch') then
+				if gui.is_enabled(gui.get_node('type_container'), false) and #gui.get_text(gui.get_node('type_text')) > 0 then
+					local pixels = {}
+					for i=2, 31 do
+						pixels[i-1] = {}
+						for j=2, 47 do
+							pixels[i-1][j-1] = tilemap.get_tile('/tiles#block_main', 'main', j, i)
+						end
 					end
+					sys.save('levels/'..gui.get_text(gui.get_node('type_text')), {pixels = pixels})
+					msg.post('/gui', 'load_selected', {nil})
+				else
+					gui.set_enabled(gui.get_node('type_container'), true)
 				end
-				sys.save('levels/'..gui.get_text(gui.get_node('type_text')), {pixels = pixels})
-			else
-				gui.set_enabled(gui.get_node('type_container'), true)
 			end
+		else
+			toggle_colour('save', 'save_text', false)
 		end
-	else
-		toggle_colour('save', 'save_text', false)
 	end
-
+	
 	if gui.is_enabled(gui.get_node('type_container'), false) then
 		if action_id == hash("type") then
 			gui.set_text(gui.get_node('type_text'), gui.get_text(gui.get_node('type_text')) .. action.text)

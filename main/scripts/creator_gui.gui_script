@@ -28,6 +28,7 @@ function on_message(self, message_id, message, sender)
 		end
 		msg.post('/load_save', 'disable')
 		msg.post('/tiles', 'saving_loading_toggle')
+		msg.post('/controller', 'saving_loading_toggle')
 		self.saving_or_loading = false
 	end
 end
@@ -44,6 +45,7 @@ function save(self)
 	msg.post('/load_save', 'enable')
 	msg.post('/load_save', 'text', {'Save'})
 	msg.post('/tiles', 'saving_loading_toggle')
+	msg.post('/controller', 'saving_loading_toggle')
 	self.saving_or_loading = true
 	toggle_colour('save', 'save_text', false)
 end
@@ -52,6 +54,7 @@ function load(self)
 	msg.post('/load_save', 'enable')
 	msg.post('/load_save', 'text', {'Load'})
 	msg.post('/tiles', 'saving_loading_toggle')
+	msg.post('/controller', 'saving_loading_toggle')
 	self.saving_or_loading = true
 	toggle_colour('load', 'load_text', false)
 end
