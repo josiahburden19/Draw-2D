@@ -1,2 +1,2 @@
-# Draw-2D
- 6th Task
+# Pixelate
+ 7th Task
