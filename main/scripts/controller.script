@@ -4,11 +4,6 @@ function init(self)
 	self.currect_collection = '#title_proxy'
 end
 
-function final(self)
-	-- Add finalization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
-end
 
 function update(self, dt)
 	-- Add update code here
