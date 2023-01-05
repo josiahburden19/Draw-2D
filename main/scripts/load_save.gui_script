@@ -3,19 +3,26 @@ function load_mode(self)
 	self.files = {}
 	self.cloned_boxes = {}
 	self.cloned_texts = {}
+	self.cloned_deletes = {}
 	self.scale_text = gui.get_scale(gui.get_node('filename'))
+	self.scale_delete = gui.get_scale(gui.get_node('delete'))
 	for dir in io.popen([[dir "levels" /b]]):lines() do table.insert(self.files, dir) end
 	for i in pairs(self.files) do
 		local pos = gui.get_position(gui.get_node('frame'))
 		local box = gui.clone(gui.get_node('frame'))
 		local text = gui.clone(gui.get_node('filename'))
+		local pos_delete = gui.get_position(gui.get_node('delete'))
+		local delete = gui.clone(gui.get_node('delete'))
 		gui.set_text(text, self.files[i])
 		gui.set_position(box, pos - vmath.vector3(0, i * 40 - 40, 0))
 		gui.set_position(text, pos - vmath.vector3(0, i * 40 - 42, 0))
+		gui.set_position(delete, pos_delete - vmath.vector3(0, i * 40 - 40, 0))
 		gui.set_enabled(box, true)
 		gui.set_enabled(text, true)
+		gui.set_enabled(delete, true)
 		table.insert(self.cloned_boxes, box)
 		table.insert(self.cloned_texts, text)
+		table.insert(self.cloned_deletes, delete)
 	end
 	gui.set_enabled(gui.get_node('save'), false)
 	msg.post('.', 'acquire_input_focus')
@@ -36,6 +43,10 @@ function close(self)
 		for i,v in pairs(self.cloned_texts) do
 			gui.delete_node(v)
 			gui.set_scale(v, self.scale_text)
+		end
+		for i,v in pairs(self.cloned_deletes) do
+			gui.delete_node(v)
+			gui.set_scale(v, self.scale_delete)
 		end
 	end
 	toggle_colour('exit1', 'exit1_text', false)
@@ -80,6 +91,17 @@ function on_input(self, action_id, action)
 				end
 			else
 				gui.animate(v, 'scale', self.scale_text, go.EASING_INOUTSINE, 0.1)
+			end
+		end
+		for i,v in pairs(self.cloned_deletes) do
+			if gui.pick_node(v, action.x, action.y) then
+				gui.animate(v, 'scale', self.scale_delete * 1.2, go.EASING_INOUTSINE, 0.1)
+				if action.pressed and action_id == hash('touch') then
+					os.remove('levels/' .. self.files[i])
+					msg.post('/gui', 'load_selected', {nil})
+				end
+			else
+				gui.animate(v, 'scale', self.scale_delete, go.EASING_INOUTSINE, 0.1)
 			end
 		end
 	end

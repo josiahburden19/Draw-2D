@@ -5,31 +5,12 @@ function init(self)
 	self.colour_offset = 0.1
 end
 
-function final(self)
-	-- Add finalization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
-end
-
 function update(self, dt)
 	self.time = self.time + dt
 	if self.time > 0.05 then
 		fade()
 		self.time = 0
 	end
-end
-
-function fixed_update(self, dt)
-	-- This function is only called if 'Use Fixed Timestep' is enabled in the Physics section of game.project
-	-- Add update code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
-end
-
-function on_message(self, message_id, message, sender)
-	-- Add message-handling code here
-	-- Learn more: https://defold.com/manuals/message-passing/
-	-- Remove this function if not needed
 end
 
 function fade()
@@ -81,10 +62,4 @@ function on_input(self, action_id, action)
 			go.set('#block_background', 'tint',vmath.vector4(0.5, 0.5, 0.5, 1))
 		end
 	end
-end
-
-function on_reload(self)
-	-- Add reload-handling code here
-	-- Learn more: https://defold.com/manuals/hot-reload/
-	-- Remove this function if not needed
 end

@@ -10,6 +10,10 @@ images {
   image: "/main/graphics/load_outline.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
+images {
+  image: "/main/graphics/delete_icon.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
 animations {
   id: "Fade_Block"
   images {

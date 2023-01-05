@@ -6,23 +6,6 @@ function init(self)
 	msg.post('.', 'acquire_input_focus')
 end
 
-function final(self)
-	-- Add finalization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
-end
-
-function update(self, dt)
-	
-end
-
-function fixed_update(self, dt)
-	-- This function is only called if 'Use Fixed Timestep' is enabled in the Physics section of game.project
-	-- Add update code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
-end
-
 function on_message(self, message_id, message, sender)
 	if message_id == hash('selected_colour') then
 		self.selected_colour = message
@@ -51,7 +34,7 @@ function on_input(self, action_id, action)
 			local direction = vmath.normalize(current_coordinates - old_coordinates)
 			local length = vmath.length(current_coordinates - old_coordinates)
 			local new_action = vmath.vector3(math.ceil(action.x/20), math.ceil(action.y/20), 0)
-			if length <= 30 and (new_action.x >= 2) and (new_action.x <= 47) and (new_action.y >= 2) and (new_action.y <= 31)then
+			if length <= 20 and (new_action.x >= 2) and (new_action.x <= 47) and (new_action.y >= 2) and (new_action.y <= 31)then
 				tilemap.set_tile('#block_main', 'main', new_action.x, new_action.y, self.selected_colour[1])
 			else
 				for i=0, math.ceil(length/20), 1 do
@@ -64,10 +47,4 @@ function on_input(self, action_id, action)
 			end
 		end
 	end
-end
-
-function on_reload(self)
-	-- Add reload-handling code here
-	-- Learn more: https://defold.com/manuals/hot-reload/
-	-- Remove this function if not needed
 end
