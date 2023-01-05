@@ -46,7 +46,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "DRAW"
+  text: "Pixelate 2d"
   font: "bold_font"
   id: "draw"
   xanchor: XANCHOR_NONE

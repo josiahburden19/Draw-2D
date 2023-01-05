@@ -9,10 +9,7 @@ function on_message(self, message_id, message, sender)
 		msg.post(sender, 'enable')
 		self.current_collection = string.sub(tostring(sender), 23, -2)
 	end
-	if message_id == hash('load_levels') then
-		msg.post(self.current_collection, 'unload')
-		msg.post('#levels_proxy', 'load')
-	elseif message_id == hash('load_title') then
+	if message_id == hash('load_title') then
 		msg.post(self.current_collection, 'unload')
 		msg.post('#title_proxy', 'load')
 	elseif message_id == hash('load_creator') then
